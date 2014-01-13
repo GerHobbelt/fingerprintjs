@@ -223,7 +223,7 @@
         'WMPlayer.OCX', // Windows media player
         'AgControl.AgControl', // Silverlight
         'Skype.Detection'];
-      if(this.ie_activex && scope.ActiveXObject){
+      if(this.ie_activex && window.ActiveXObject){
         // starting to detect plugins in IE
         return this.map(names, function(name){
           try{
