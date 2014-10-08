@@ -72,6 +72,11 @@
   Fingerprint.prototype = {
     get: function(){
       var keys = [];
+      keys.push(navigator.appCodeName);
+      keys.push(navigator.appVersion);
+      keys.push(navigator.cookieEnabled.toString());
+      keys.push(navigator.javaEnabled().toString());
+      keys.push(navigator.appName);
       keys.push(navigator.userAgent);
       keys.push(navigator.language);
       keys.push(screen.colorDepth);
