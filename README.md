@@ -6,7 +6,7 @@
 </p>
 
 Fast browser fingerprint library. Written in pure JavaScript, no dependencies. 
-By default uses [Murmur hashing][murmur] and returns a 32bit integer number.
+Has been modified to use additional browser and device markers by @crockpotveggies and by default uses [MD5 hashing](https://github.com/placemarker/jQuery-MD5/blob/master/jquery.md5.js).
 Hashing function can be easily replaced.
 Feather weight: only **1.2** KB when gzipped.
 
@@ -189,7 +189,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [mit]: http://www.opensource.org/licenses/mit-license.php
-[murmur]: http://en.wikipedia.org/wiki/MurmurHash
 [research]: https://panopticlick.eff.org/browser-uniqueness.pdf
 [phantomjs]: http://phantomjs.org/
 [uglifyjs]: https://github.com/mishoo/UglifyJS
