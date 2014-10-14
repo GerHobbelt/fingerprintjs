@@ -518,13 +518,13 @@
       return false;
     },
 
-    flashParameters: function(options) {
-      if ( typeof options == 'boolean' && options == true )
+    flashParameters: function(flashOptions) {
+      if ( typeof flashOptions == 'object' )
       {
         // load default values
         this.flash = {};
         this.flash.id = 'fingerprint-js-flash';
-        this.flash.swf = this.options.flash.path;
+        this.flash.swf = flashOptions.path;
         this.addFlashDiv();
       }
       else
