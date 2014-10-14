@@ -66,6 +66,8 @@
       this.ie_activex = options.ie_activex;
       if ( typeof options.flash.path == 'string' )
       {
+        // add placeholder to global scope
+        window.__global_fingerprints = {};
         this.flashParameters(options.flash);
         /* store this instance in the global namespace
          * so Flash can access it when loaded
