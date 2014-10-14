@@ -510,6 +510,13 @@
       ctx.fillText(txt, 4, 17);
       return canvas.toDataURL();
     },
+    
+    hasPlugin: function(name) {
+      var plugins = this.getPluginsString();
+      if ( typeof( plugins ) == 'string' && plugins.match(name) )
+        return true;
+      return false;
+    },
 
     flashParameters: function(options) {
       if ( typeof options == 'boolean' && options == true )
