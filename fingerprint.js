@@ -59,11 +59,27 @@
       return results;
     };
 
-    if (typeof options == 'object'){
+    if ( typeof options == 'object' ){
       this.hasher = options.hasher;
       this.screen_resolution = options.screen_resolution;
       this.canvas = options.canvas;
       this.ie_activex = options.ie_activex;
+      if ( typeof options.flash.path == 'string' )
+      {
+        this.flashParameters(options.flash);
+        /* store this instance in the global namespace
+         * so Flash can access it when loaded
+         */
+        __global_fingerprints[this.flash.id] = this;
+        // trigger loading the flash app
+        this.loadSwf();
+        this.useFlash = true;
+      }
+      else
+      {
+        this.useFlash = false;
+      }
+      
     } else if(typeof options == 'function'){
       this.hasher = options;
     }
@@ -117,6 +133,9 @@
       keys.push(this.getPluginsString());
       if(this.canvas && this.isCanvasSupported()){
         keys.push(this.getCanvasFingerprint());
+      }
+      if(this.useFlash) {
+        keys.push(this.font_list);
       }
       if(this.hasher){
         return this.hasher(keys.join('###'), 31);
@@ -488,6 +507,39 @@
       ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
       ctx.fillText(txt, 4, 17);
       return canvas.toDataURL();
+    },
+
+    flashParameters: function(options) {
+      if ( typeof options == 'boolean' && options == true )
+      {
+        // load default values
+        this.flash = {};
+        this.flash.id = 'fingerprint-js-flash';
+        this.flash.swf = this.options.flash.path;
+        this.addFlashDiv();
+      }
+      else
+        this.flash = options;
+    },
+    addFlashDiv: function() {
+      var node = document.createElement('div');
+      node.setAttribute("id", this.flash.id);
+      node.setAttribute("style", "'width': 1px; height: 1px;");
+      document.body.appendChild(node);
+    },
+    loadSwf: function() {
+      if ( ! this.hasPlugin(/flash/i) )
+        return undefined;
+      var flashvars = { onReady: "__global_fingerprints['" + this.flash.id + "'].swfReady", swfObjectId: this.flash.id };
+      var params = { allowScriptAccess: "always", menu: "false" };
+      var attributes = { 'id': this.flash.id, name: this.flash.id };
+      swfobject.embedSWF(this.flash.swf, this.flash.id, "1", "1", "9.0.0", false, flashvars, params, attributes); 
+    },
+    swfReady: function(id) {
+      var swfElement = document.getElementById(id);
+      this.font_list = swfElement.fonts().join(";");
+      var hash = this.computeHash();
+      this.callback(hash);
     }
   };
 
