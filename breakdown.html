@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>fingerprintjs</title>
+  <script type="text/javascript" src="haven_artifacts/main/gl-matrix/dist/gl-matrix.js"></script>
+  <style type="text/css">
+    body{
+      font-family: 'Sans'
+    }
+  </style>
+  <script src="fingerprint.js"></script>
+</head>
+<body>
+  <div id="canvas2"> </div>
+  <div>
+    <pre id="fp1"></pre>
+  </div>
+  <script>
+    var fp1 = new Fingerprint({breakdown: true, canvas: true, webgl: true});
+    document.getElementById('fp1').innerHTML = JSON.stringify(fp1.get(), null, '\t');
+  </script>
+</body>
+</html>
