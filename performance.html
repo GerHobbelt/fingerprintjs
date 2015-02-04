@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>fingerprintjs</title>
+  <script type="text/javascript" src="haven_artifacts/main/gl-matrix/dist/gl-matrix.js"></script>
+  <script src="fingerprint.js"></script>
+</head>
+<body>
+  <div id="output">
+
+  </div>
+  <script>
+    var tests = {
+      "Minimum": new Fingerprint(),
+      "With Canvas": new Fingerprint({canvas: true}),
+      "With WebGL": new Fingerprint({webgl: true}),
+      "With Canvas and WebGL": new Fingerprint({canvas: true, webgl: true})
+    }
+    var loops = 1;
+    var keys = Object.keys(tests);
+    var outputEl = document.getElementById("output")
+    for(var i in keys){
+      var key = keys[i];
+      fp = tests[key];
+      var start = new Date().getTime();
+      for(var j=0; j<loops; j++){
+        fp.get();
+      }
+      var end = new Date().getTime();
+      var execTime = end - start;
+      var execTimePerFP = execTime / loops;
+      outputEl.innerHTML = outputEl.innerHTML + "<p>" + key + ": " + loops + " tests ran in " + execTime + "ms. Average: " + execTimePerFP + "ms</p>"
+    }
+  </script>
+</body>
+</html>

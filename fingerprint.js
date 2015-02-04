@@ -530,7 +530,7 @@
       var canvas = document.createElement('canvas');
       var ctx = canvas.getContext('2d');
       // https://www.browserleaks.com/canvas#how-does-it-work
-      var txt = 'http://valve.github.io';
+      var txt = 'Cwm fjordbank glyphs vext quiz';
       ctx.textBaseline = "top";
       ctx.font = "14px 'Arial'";
       ctx.textBaseline = "alphabetic";
@@ -728,7 +728,6 @@
       // Rotate the cube
       var fract = 0.48;
       var angle = Math.PI * 2 * fract;
-      console.log(angle);
       mat4.rotate(modelViewMatrix, modelViewMatrix, angle, [1.2, 1, 1]);
 
       // clear the background (with black)
