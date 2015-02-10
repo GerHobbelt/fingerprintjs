@@ -89,8 +89,8 @@
   };
 
   Fingerprint.prototype = {
-    get: function() {
-      var keys = {};
+    get: function(keys) {
+      keys = keys || {};
 
       keys.cookieEnabled = navigator.cookieEnabled.toString();
       keys.javaEnabled = navigator.javaEnabled().toString();
