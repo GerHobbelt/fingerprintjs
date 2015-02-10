@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>fingerprintjs</title>
+  <script type="text/javascript" src="haven_artifacts/main/swfobject/swfobject.js"></script>
   <script type="text/javascript" src="haven_artifacts/main/gl-matrix/dist/gl-matrix.js"></script>
   <script src="fingerprint.js"></script>
 </head>
@@ -14,9 +15,11 @@
       "Minimum": new Fingerprint(),
       "With Canvas": new Fingerprint({canvas: true}),
       "With WebGL": new Fingerprint({webgl: true}),
-      "With Canvas and WebGL": new Fingerprint({canvas: true, webgl: true})
+      "With Flash": new Fingerprint({flash: {path: "assets/flash/FontList.swf"}}),
+      "With Canvas and WebGL": new Fingerprint({canvas: true, webgl: true}),
+      "With Everything": new Fingerprint({canvas: true, webgl: true, flash: {path: "assets/flash/FontList.swf"}})
     }
-    var loops = 1;
+    var loops = 100;
     var keys = Object.keys(tests);
     var outputEl = document.getElementById("output")
     for(var i in keys){
@@ -24,7 +27,8 @@
       fp = tests[key];
       var start = new Date().getTime();
       for(var j=0; j<loops; j++){
-        fp.get();
+        var r = fp.get();
+        console.log(r);
       }
       var end = new Date().getTime();
       var execTime = end - start;
