@@ -24,86 +24,36 @@
   'use strict';
 
   var Fingerprint = function (options) {
-    var nativeForEach, nativeMap;
-    nativeForEach = Array.prototype.forEach;
-    nativeMap = Array.prototype.map;
-
-    this.each = function (obj, iterator, context) {
-      if (obj === null) {
-        return;
-      }
-      if (nativeForEach && obj.forEach === nativeForEach) {
-        obj.forEach(iterator, context);
-      } else if (obj.length === +obj.length) {
-        for (var i = 0, l = obj.length; i < l; i++) {
-          if (iterator.call(context, obj[i], i, obj) === {}) return;
-        }
-      } else {
-        for (var key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            if (iterator.call(context, obj[key], key, obj) === {}) return;
-          }
-        }
-      }
-    };
-
-    this.map = function(obj, iterator, context) {
-      var results = [];
-      // Not using strict equality so that this acts as a
-      // shortcut to checking for `null` and `undefined`.
-      if (obj == null) return results;
-      if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
-      this.each(obj, function(value, index, list) {
-        results[results.length] = iterator.call(context, value, index, list);
-      });
-      return results;
-    };
-
-    if (typeof options == 'object'){
-      this.hasher = options.hasher;
-      this.screen_resolution = options.screen_resolution;
-      this.screen_orientation = options.screen_orientation;
-      this.canvas = options.canvas;
-      this.ie_activex = options.ie_activex;
-    } else if(typeof options == 'function'){
-      this.hasher = options;
-    }
+    var canvas = document.createElement('canvas');
+    this.canvas = !!(canvas.getContext && canvas.getContext('2d'));
+    this.ielt11 = navigator.appName === 'Microsoft Internet Explorer'
   };
 
   Fingerprint.prototype = {
     get: function(){
-      var keys = [];
-      keys.push(navigator.userAgent);
-      keys.push(navigator.language);
-      keys.push(screen.colorDepth);
-      if (this.screen_resolution) {
-        var resolution = this.getScreenResolution();
-        if (typeof resolution !== 'undefined'){ // headless browsers, such as phantomjs
-          keys.push(this.getScreenResolution().join('x'));
-        }
-      }
-      keys.push(new Date().getTimezoneOffset());
-      keys.push(this.hasSessionStorage());
-      keys.push(this.hasLocalStorage());
-      keys.push(!!window.indexedDB);
-      //body might not be defined at this point or removed programmatically
-      if(document.body){
-        keys.push(typeof(document.body.addBehavior));
-      } else {
-        keys.push(typeof undefined);
-      }
-      keys.push(typeof(window.openDatabase));
-      keys.push(navigator.cpuClass);
-      keys.push(navigator.platform);
-      keys.push(navigator.doNotTrack);
-      keys.push(this.getPluginsString());
-      if(this.canvas && this.isCanvasSupported()){
-        keys.push(this.getCanvasFingerprint());
-      }
+      return  {
+        plugins: this.getPlugins(),
+        canvasFingerprintHash: this.getCanvasFingerprintHash(),
+        resolution: this.getScreenResolution(),
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        colorDepth: screen.colorDepth,
+        timezone: new Date().getTimezoneOffset(),
+        cpuClass: navigator.cpuClass,
+        platform: navigator.platform,
+        hasSessionStorage: this.hasSessionStorage(),
+        hasLocalStorage: this.hasLocalStorage(),
+        hasIndexedDB: !!window.indexedDB,
+        hasWebSQL: !!window.openDatabase
+      };
+    },
+
+    getHash: function() {
+      var json = JSON.stringify(this.get());
       if(this.hasher){
-        return this.hasher(keys.join('###'), 31);
+        return this.hasher(json, 31);
       } else {
-        return this.murmurhash3_32_gc(keys.join('###'), 31);
+        return this.murmurhash3_32_gc(json, 31);
       }
     },
 
@@ -189,66 +139,65 @@
       }
     },
 
-    isCanvasSupported: function () {
-      var elem = document.createElement('canvas');
-      return !!(elem.getContext && elem.getContext('2d'));
-    },
-
-    isIE: function () {
-      if(navigator.appName === 'Microsoft Internet Explorer') {
-        return true;
-      } else if(navigator.appName === 'Netscape' && /Trident/.test(navigator.userAgent)){// IE 11
-        return true;
+    getPlugins: function () {
+      if(this.ielt11){
+        return this.getIEPlugins();
+      } else {
+        return this.getRegularPlugins();
       }
-      return false;
     },
 
     getPluginsString: function () {
-      if(this.isIE() && this.ie_activex){
-        return this.getIEPluginsString();
-      } else {
-        return this.getRegularPluginsString();
+      return this.getPlugins().join(';');
+    },
+
+    getRegularPlugins: function () {
+      var result = {};
+      for(var i = 0; i < navigator.plugins.length; i++) {
+        var p = navigator.plugins[i];
+        var mimeTypes = {};
+        for(var j = 0; j < p.length; j++) {
+          mimeTypes[p[j].type] = p[j].suffixes;
+        }
+        result[p.name + '::' + p.description] = mimeTypes;
       }
+      return result;
     },
 
     getRegularPluginsString: function () {
-      return this.map(navigator.plugins, function (p) {
-        var mimeTypes = this.map(p, function(mt){
-          return [mt.type, mt.suffixes].join('~');
-        }).join(',');
-        return [p.name, p.description, mimeTypes].join('::');
-      }, this).join(';');
+      return this.getRegularPlugins().join(';');
     },
 
     getIEPluginsString: function () {
-      if(window.ActiveXObject){
-        var names = ['ShockwaveFlash.ShockwaveFlash',//flash plugin
-          'AcroPDF.PDF', // Adobe PDF reader 7+
-          'PDF.PdfCtrl', // Adobe PDF reader 6 and earlier, brrr
-          'QuickTime.QuickTime', // QuickTime
-          // 5 versions of real players
-          'rmocx.RealPlayer G2 Control',
-          'rmocx.RealPlayer G2 Control.1',
-          'RealPlayer.RealPlayer(tm) ActiveX Control (32-bit)',
-          'RealVideo.RealVideo(tm) ActiveX Control (32-bit)',
-          'RealPlayer',
-          'SWCtl.SWCtl', // ShockWave player
-          'WMPlayer.OCX', // Windows media player
-          'AgControl.AgControl', // Silverlight
-          'Skype.Detection'];
+      return getIEPlugins().join(';');
+    },
 
-        // starting to detect plugins in IE
-        return this.map(names, function(name){
-          try{
-            new ActiveXObject(name);
-            return name;
-          } catch(e){
-            return null;
-          }
-        }).join(';');
-      } else {
-        return ""; // behavior prior version 0.5.0, not breaking backwards compat.
+    getIEPlugins: function () {
+      var names = ['ShockwaveFlash.ShockwaveFlash',//flash plugin
+        'AcroPDF.PDF', // Adobe PDF reader 7+
+        'PDF.PdfCtrl', // Adobe PDF reader 6 and earlier, brrr
+        'QuickTime.QuickTime', // QuickTime
+        // 5 versions of real players
+        'rmocx.RealPlayer G2 Control',
+        'rmocx.RealPlayer G2 Control.1',
+        'RealPlayer.RealPlayer(tm) ActiveX Control (32-bit)',
+        'RealVideo.RealVideo(tm) ActiveX Control (32-bit)',
+        'RealPlayer',
+        'SWCtl.SWCtl', // ShockWave player
+        'WMPlayer.OCX', // Windows media player
+        'AgControl.AgControl', // Silverlight
+        'Skype.Detection'];
+
+      // starting to detect plugins in IE
+      var result = {};
+      for(var i = 0; i < names.length; i++) {
+        try{
+          new ActiveXObject(name);
+          result.push(name);
+        } catch(e){
+        }
       }
+      return result;
     },
 
     getScreenResolution: function () {
@@ -262,6 +211,7 @@
     },
 
     getCanvasFingerprint: function () {
+      if(!this.canvas) return "";
       var canvas = document.createElement('canvas');
       var ctx = canvas.getContext('2d');
       // https://www.browserleaks.com/canvas#how-does-it-work
@@ -276,9 +226,13 @@
       ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
       ctx.fillText(txt, 4, 17);
       return canvas.toDataURL();
-    }
-  };
+    },
 
+    getCanvasFingerprintHash: function () {
+      return this.murmurhash3_32_gc(this.getCanvasFingerprint(), 31);
+    }
+
+  };
 
   return Fingerprint;
 
